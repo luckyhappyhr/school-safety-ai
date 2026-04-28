@@ -299,7 +299,7 @@ if uploaded_files:
                     for cat in categories:
                         for _, row in df_user.iterrows():
                             if any(cat in str(cell).strip() for cell in row.values):
-                               nums = pd.to_numeric(row, errors='coerce').dropna()
+                                nums = pd.to_numeric(row, errors='coerce').dropna()
                                 if len(nums) > 0:
                                     val = int(nums.iloc[-1])
                                     st.session_state.parsed_counts[dim][cat] = val
