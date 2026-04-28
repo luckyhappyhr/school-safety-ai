@@ -218,7 +218,7 @@ def load_data_and_compute_baselines(csv_path):
             if df[col].dtype == 'object' and col not in ['구분', '학교급']:
                 try:
                     df[col] = df[col].astype(str).str.replace(',', '').str.strip()
-                    df[col] = pd.to_numeric(df[col])
+		    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
                 except: pass
 
         for dim, prefix in app.prefixes.items():
