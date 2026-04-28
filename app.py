@@ -16,17 +16,24 @@ st.set_page_config(page_title="4D 학교 안전 큐레이션 AI", layout="wide",
 class GeniusSafetyDiagnosticUltimate:
     def __init__(self, csv_file_path):
         self.csv_file_path = csv_file_path
+        self.df = None
         self.baselines = {}
+
         self.prefixes = {
-            '행동': '행동-', '활동': '활동-', '장소': '장소-', '형태': '형태-'
+            '행동': '행동-',
+            '활동': '활동-',
+            '장소': '장소-',
+            '형태': '형태-'
         }
+
         self.all_categories = {'행동': [], '활동': [], '장소': [], '형태': []}
+
         self.severe_accidents = [
             '화학물질 노출', '열, 전기에 의한 손상', '끼임·눌림', '식중독 및 이물질 섭취, 접촉',
             '(교통수단 등) 운전, 조작, 탑승 중', '교통구역(스쿨존 내)', '교통구역(스쿨존 외)'
         ]
 
-        # 🩺 [보건실 전용] 사고 키워드별 필수 비축 물품 DB (원본 유지)
+        # 🩺 [보건실 전용] 사고 키워드별 필수 비축 물품 DB
         self.medical_supply_db = {
             '염좌': "냉찜질팩, 압박붕대, 뿌리는 파스, 부목",
             '삐임': "냉찜질팩, 압박붕대, 뿌리는 파스, 부목",
@@ -50,7 +57,7 @@ class GeniusSafetyDiagnosticUltimate:
             '기타': "일반 밴드, 알코올 스왑, 다목적 소독제"
         }
 
-        # 🧠 [부서별 역할 분리 & 맞춤 영상 링크 DB] (원본 유지)
+        # 🧠 [부서별 역할 분리 & 초중고 맞춤 영상 링크 DB]
         self.solutions_db = {
             '일반학습': {
                 '담임': "교실 내 필기구 및 책상 모서리 안전 가드 부착 및 수업 전 1분 정리 정돈 퀘스트", '행정실': "사물함 고정 상태 및 칠판/모니터 부착 상태 긴급 점검", '보건실': "교실 내 찰과상 응급처치 매뉴얼 안내", 
@@ -192,7 +199,7 @@ class GeniusSafetyDiagnosticUltimate:
             '체육·집회공간': {'담임': "강당 진입 시 질서 유지 및 시설물 임의 조작 금지 교육", '행정실': "벽면 충격 흡수 패드 전면 시공 및 소화기 가시성 확보", '보건실': "다수 밀집 시 발생 가능한 안전사고 예방 점검"},
         }
 
-   def get_default_solution(self, item):
+    def get_default_solution(self, item):
         # 1. 문구 자연스럽게 다듬기
         if any(x in item for x in ['시간', '활동', '기타', '그 밖의']):
             t_sol = f"해당 시간/활동({item}) 중 임장 지도 강화 및 사전 안전수칙 필수 안내"
@@ -201,11 +208,11 @@ class GeniusSafetyDiagnosticUltimate:
             t_sol = f"{item} 주요 발생 구역 사각지대 순찰 및 학생 밀집도 분산 지도"
             a_sol = f"{item} 관련 환경적 위험 요인 긴급 점검 및 물리적 시설 보완"
             
-        # 2. 유튜브 검색어 및 URL 최적화 (공백 제거가 핵심!)
+        # 2. 유튜브 검색어 및 URL 최적화 (공백을 +로 치환)
         clean_item = item.replace('그 밖의', '').replace('시간', '').replace('기타', '').strip()
         if not clean_item: clean_item = "학교안전"
         
-        # URL에 공백이 있으면 마크다운이 깨지므로 +로 강제 치환
+        # URL 주소 내 공백을 +로 변환하여 마크다운 깨짐 방지
         search_query = f"학교+안전사고+{clean_item}".replace(' ', '+')
         final_url = f"https://www.youtube.com/results?search_query={search_query}"
         
