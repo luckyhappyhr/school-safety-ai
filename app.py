@@ -215,14 +215,14 @@ def load_data_and_compute_baselines(csv_path):
         df.columns = df.columns.str.replace('\n', '').str.replace('\r', '').str.strip()
         df = df.ffill()
         
-        # 2. 모든 데이터 전처리 (구분, 학교급 제외한 모든 컬럼을 숫자로 강제 변환)
+        # 2. 모든 데이터 강제 숫자 변환 (핵심 에러 방지 구역)
         for col in df.columns:
             if col not in ['구분', '학교급']:
-                # 하이픈(-), 쉼표(,), 공백 제거 후 숫자로 변환. 실패 시 NaN 처리 후 0으로 채움
+                # 문자가 섞인 데이터를 강제로 숫자로 변환 (실패 시 0 처리)
                 df[col] = pd.to_numeric(
                     df[col].astype(str).str.replace(',', '').str.replace('-', '0').str.strip(), 
                     errors='coerce'
-                ).fillna(0)
+                ).fillna(0).astype(float)
 
         # 3. 전국 Baseline(평균) 계산
         school_levels = df['학교급'].unique()
@@ -230,19 +230,24 @@ def load_data_and_compute_baselines(csv_path):
             app.baselines[level] = {}
             level_df = df[df['학교급'] == level]
             
-            # 학생수를 숫자로 확실히 변환한 뒤 합산
-            total_students = pd.to_numeric(level_df['학생수'], errors='coerce').sum()
+            # 학생수를 숫자로 확실히 변환한 뒤 합산 (에러 발생 지점 방어)
+            total_students = float(level_df['학생수'].sum())
 
             for dim, prefix in app.prefixes.items():
                 cols = [c for c in level_df.columns if c.startswith(prefix)]
                 
-                # 여기서 비교 에러 방지를 위해 float으로 강제 형변환 후 확인
-                if float(total_students) > 0:
+                # 'total_students'가 숫자이므로 이제 에러 없이 비교 가능합니다.
+                if total_students > 0:
                     rate_series = (level_df[cols].sum() / total_students) * 1000
                     app.baselines[level][dim] = {k.replace(prefix, '').strip(): v for k, v in rate_series.items()}
                 else:
                     app.baselines[level][dim] = {k.replace(prefix, '').strip(): 0 for k in cols}
         
+        # 4. 입력 칸 구성을 위한 카테고리 목록 재생성
+        for dim, prefix in app.prefixes.items():
+            cols = [c for c in df.columns if c.startswith(prefix)]
+            app.all_categories[dim] = [c.replace(prefix, '').strip() for c in cols]
+            
         return app, df, True
     except Exception as e:
         return app, None, str(e)
