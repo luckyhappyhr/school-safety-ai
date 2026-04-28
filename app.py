@@ -299,11 +299,11 @@ if uploaded_files:
                     for cat in categories:
                         for _, row in df_user.iterrows():
                             if any(cat in str(cell).strip() for cell in row.values):
-				nums = pd.to_numeric(row, errors='coerce').dropna()
+                               nums = pd.to_numeric(row, errors='coerce').dropna()
                                 if len(nums) > 0:
                                     val = int(nums.iloc[-1])
                                     st.session_state.parsed_counts[dim][cat] = val
-                                    st.session_state[f"{dim}_{cat}"] = val  # 🌟 마법의 1줄: 화면 입력 칸 강제 업데이트!
+                                    st.session_state[f"{dim}_{cat}"] = val
                                     found_count += 1
                                 break
         except Exception as e:
