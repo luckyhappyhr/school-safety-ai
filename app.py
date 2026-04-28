@@ -192,14 +192,30 @@ class GeniusSafetyDiagnosticUltimate:
             '체육·집회공간': {'담임': "강당 진입 시 질서 유지 및 시설물 임의 조작 금지 교육", '행정실': "벽면 충격 흡수 패드 전면 시공 및 소화기 가시성 확보", '보건실': "다수 밀집 시 발생 가능한 안전사고 예방 점검"},
         }
 
-    def get_default_solution(self, item):
+   def get_default_solution(self, item):
+        # 1. 문구 자연스럽게 다듬기
+        if any(x in item for x in ['시간', '활동', '기타', '그 밖의']):
+            t_sol = f"해당 시간/활동({item}) 중 임장 지도 강화 및 사전 안전수칙 필수 안내"
+            a_sol = f"관련 활동이 주로 이루어지는 특별실 및 공용 공간 위험 요인 점검"
+        else:
+            t_sol = f"{item} 주요 발생 구역 사각지대 순찰 및 학생 밀집도 분산 지도"
+            a_sol = f"{item} 관련 환경적 위험 요인 긴급 점검 및 물리적 시설 보완"
+            
+        # 2. 유튜브 검색어 및 URL 최적화 (공백 제거가 핵심!)
+        clean_item = item.replace('그 밖의', '').replace('시간', '').replace('기타', '').strip()
+        if not clean_item: clean_item = "학교안전"
+        
+        # URL에 공백이 있으면 마크다운이 깨지므로 +로 강제 치환
+        search_query = f"학교+안전사고+{clean_item}".replace(' ', '+')
+        final_url = f"https://www.youtube.com/results?search_query={search_query}"
+        
         return {
-            '담임': f"'{item}' 발생 구역의 학생 밀집도 분산 및 생활 지도 강화",
-            '행정실': f"해당 구역 환경적 위험 요인 긴급 점검 및 물리적 시설 보완",
-            '보건실': f"관련 응급처치 매뉴얼 정비 및 교직원 비상 연락망 점검",
+            '담임': t_sol,
+            '행정실': a_sol,
+            '보건실': f"{item} 관련 다빈도 부상 예측 및 응급처치 물품 사전 점검",
             'videos': {
                 '초등': [], '중학': [], '고등': [],
-                '공통': [(f"'{item}' 맞춤형 안전 교육 영상", f"https://www.youtube.com/results?search_query=학교+안전사고+{item}")]
+                '공통': [(f"{item} 예방 교육 영상 추천", final_url)]
             }
         }
 
