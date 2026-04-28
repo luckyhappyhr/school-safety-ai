@@ -210,31 +210,34 @@ class GeniusSafetyDiagnosticUltimate:
 def load_data_and_compute_baselines(csv_path):
     app = GeniusSafetyDiagnosticUltimate(csv_path)
     try:
+        # 1. 파일 읽기 및 컬럼 정리
         df = pd.read_csv(app.csv_file_path)
-        df.columns = df.columns.str.replace('\n', '').str.replace('\r', '')
+        df.columns = df.columns.str.replace('\n', '').str.replace('\r', '').str.strip()
         df = df.ffill()
         
+        # 2. 모든 데이터 전처리 (구분, 학교급 제외한 모든 컬럼을 숫자로 강제 변환)
         for col in df.columns:
-            if df[col].dtype == 'object' and col not in ['구분', '학교급']:
-                try:
-                    df[col] = df[col].astype(str).str.replace(',', '').str.strip()
-		    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-                except: pass
+            if col not in ['구분', '학교급']:
+                # 하이픈(-), 쉼표(,), 공백 제거 후 숫자로 변환. 실패 시 NaN 처리 후 0으로 채움
+                df[col] = pd.to_numeric(
+                    df[col].astype(str).str.replace(',', '').str.replace('-', '0').str.strip(), 
+                    errors='coerce'
+                ).fillna(0)
 
-        for dim, prefix in app.prefixes.items():
-            cols = [c for c in df.columns if c.startswith(prefix)]
-            app.all_categories[dim] = [c.replace(prefix, '').strip() for c in cols]
-
-        # Baseline 계산
+        # 3. 전국 Baseline(평균) 계산
         school_levels = df['학교급'].unique()
         for level in school_levels:
             app.baselines[level] = {}
             level_df = df[df['학교급'] == level]
-            total_students = level_df['학생수'].sum()
+            
+            # 학생수를 숫자로 확실히 변환한 뒤 합산
+            total_students = pd.to_numeric(level_df['학생수'], errors='coerce').sum()
 
             for dim, prefix in app.prefixes.items():
                 cols = [c for c in level_df.columns if c.startswith(prefix)]
-                if total_students > 0:
+                
+                # 여기서 비교 에러 방지를 위해 float으로 강제 형변환 후 확인
+                if float(total_students) > 0:
                     rate_series = (level_df[cols].sum() / total_students) * 1000
                     app.baselines[level][dim] = {k.replace(prefix, '').strip(): v for k, v in rate_series.items()}
                 else:
@@ -248,7 +251,7 @@ def load_data_and_compute_baselines(csv_path):
 # ==========================================
 # 3. Streamlit UI (프론트엔드)
 # ==========================================
-st.title("🧠 4D 학교 안전 큐레이션 AI (최종판)")
+st.title("🧠 스쿨세이프티: 학교 안전 진단 및 솔루션 제공")
 st.markdown("""
 **[STEP 1] 우리 학교의 사고 통계 파일(장소, 행동, 활동, 형태 등)을 한 번에 업로드하세요.** 엑셀(.xls, .xlsx) 및 CSV를 모두 지원하며, AI가 업로드된 파일을 분석하여 건수를 자동으로 채워줍니다.
 """)
