@@ -229,7 +229,7 @@ class GeniusSafetyDiagnosticUltimate:
 # ==========================================
 # 2. 전역 함수 (Streamlit 캐싱 적용으로 성능 향상)
 # ==========================================
-@st.cache_data
+@st.cache_resource # ★ 수정됨: 객체를 캐싱할 때는 cache_data가 아닌 cache_resource를 써야 합니다.
 def load_data_and_compute_baselines(csv_path):
     app = GeniusSafetyDiagnosticUltimate(csv_path)
     try:
@@ -288,7 +288,7 @@ st.markdown("""
 app_instance, base_df, load_status = load_data_and_compute_baselines("2024_안전공제회.csv")
 
 if load_status is not True:
-    st.error(f"❌ 기본 데이터셋(2024_안전공제회.csv) 불러오기 실패. 백엔드(서버/깃허브)에 파일이 있는지 확인하세요.\n\n에러 메시지: {load_status}")
+    st.error(f"❌ 기본 데이터셋(2024_안전공제회.csv) 불러오기 실패. 동일 폴더에 파일이 있는지 확인하세요.\n\n에러 메시지: {load_status}")
     st.stop()
 
 # 2) Session State 초기화 (업로드 파일로 자동 채우기 위함)
