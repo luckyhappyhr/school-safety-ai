@@ -7,8 +7,8 @@ import warnings
 # 파이썬 경고 메시지 완벽 차단
 warnings.filterwarnings('ignore')
 
-# ⚙️ 페이지 기본 설정 (가장 먼저 호출되어야 함)
-st.set_page_config(page_title="4D 학교 안전 큐레이션 AI", layout="wide", page_icon="🧠")
+# ⚙️ 페이지 기본 설정
+st.set_page_config(page_title="온세이프 - 학교 안전 큐레이션 AI", layout="wide")
 
 # ==========================================
 # 1. 핵심 AI 진단 클래스 및 데이터베이스
@@ -200,7 +200,6 @@ class GeniusSafetyDiagnosticUltimate:
         }
 
     def get_default_solution(self, item):
-        # 1. 문구 자연스럽게 다듬기
         if any(x in item for x in ['시간', '활동', '기타', '그 밖의']):
             t_sol = f"해당 시간/활동({item}) 중 임장 지도 강화 및 사전 안전수칙 필수 안내"
             a_sol = f"관련 활동이 주로 이루어지는 특별실 및 공용 공간 위험 요인 점검"
@@ -229,7 +228,7 @@ class GeniusSafetyDiagnosticUltimate:
 # ==========================================
 # 2. 전역 함수 (Streamlit 캐싱 적용으로 성능 향상)
 # ==========================================
-@st.cache_resource # ★ 수정됨: 객체를 캐싱할 때는 cache_data가 아닌 cache_resource를 써야 합니다.
+@st.cache_resource
 def load_data_and_compute_baselines(csv_path):
     app = GeniusSafetyDiagnosticUltimate(csv_path)
     try:
@@ -259,7 +258,6 @@ def load_data_and_compute_baselines(csv_path):
             for dim, prefix in app.prefixes.items():
                 cols = [c for c in level_df.columns if c.startswith(prefix)]
                 
-                # 'total_students'가 숫자이므로 이제 에러 없이 비교 가능합니다.
                 if total_students > 0:
                     rate_series = (level_df[cols].sum() / total_students) * 1000
                     app.baselines[level][dim] = {k.replace(prefix, '').strip(): v for k, v in rate_series.items()}
