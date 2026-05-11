@@ -453,8 +453,23 @@ if st.button("🚀 AI 진단 리포트 실행", type="primary", use_container_wi
         level_key = my_school_level[:2]
         if level_key not in ['초등', '중학', '고등']: level_key = '초등'
 
-        # 👨‍🏫 담임 교사 (상단 전체 차지)
-        st.info("#### 👨‍🏫 [담임 교사] 맞춤 예방 교육 및 영상 자료")
+        # 👨‍🏫 담임 교사 (상단 전체 차지 - Info 테마/파란색)
+        st.markdown(
+            """
+            <div style="
+                font-size: clamp(16px, 2vw, 24px); 
+                font-weight: bold; 
+                background-color: #e8f4f8; 
+                padding: 15px; 
+                border-radius: 8px; 
+                color: #0c5460;
+                margin-bottom: 15px;">
+                👨‍🏫 [담임 교사] 맞춤 예방 교육 및 영상 자료
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
         for idx, anomaly in enumerate(top_5_anomalies):
             item = anomaly['item']
             sol = app_instance.solutions_db.get(item, app_instance.get_default_solution(item))
@@ -475,26 +490,68 @@ if st.button("🚀 AI 진단 리포트 실행", type="primary", use_container_wi
         # 행정실, 보건실, 안전부장 (3개의 열로 나누어 배치)
         r_cols = st.columns(3)
         
-        # 🛠️ 행정실
+        # 🛠️ 행정실 (Error 테마/빨간색)
         with r_cols[0]:
-            st.error("#### 🛠️ [행정실] 시설 점검 요청")
+            st.markdown(
+                """
+                <div style="
+                    font-size: clamp(14px, 1.8vw, 22px); 
+                    font-weight: bold; 
+                    background-color: #fce8e6; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    color: #c5221f;
+                    margin-bottom: 15px;">
+                    🛠️ [행정실] 시설 점검 요청
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
             for idx, anomaly in enumerate(top_5_anomalies):
                 item = anomaly['item']
                 sol = app_instance.solutions_db.get(item, app_instance.get_default_solution(item))
                 st.markdown(f"**{idx+1}위: {item}**\n- {sol['행정실']}")
 
-        # 🩹 보건실
+        # 🩹 보건실 (Success 테마/초록색)
         with r_cols[1]:
-            st.success("#### 🩹 [보건실] 물품 비축 지침")
+            st.markdown(
+                """
+                <div style="
+                    font-size: clamp(14px, 1.8vw, 22px); 
+                    font-weight: bold; 
+                    background-color: #e6f4ea; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    color: #137333;
+                    margin-bottom: 15px;">
+                    🩹 [보건실] 물품 비축 지침
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
             for idx, anomaly in enumerate(top_5_anomalies):
                 item = anomaly['item']
                 sol = app_instance.solutions_db.get(item, app_instance.get_default_solution(item))
                 supplies = next((v for k, v in app_instance.medical_supply_db.items() if k in item), app_instance.medical_supply_db['기타'])
                 st.markdown(f"**{idx+1}위: {item}**\n- {sol['보건실']}\n- 💊 **필수 비축:** {supplies}")
 
-        # 📋 안전부장
+        # 📋 안전부장 (Info 테마/파란색)
         with r_cols[2]:
-            st.info("#### 📋 [안전부장] 시수 배정 추천")
+            st.markdown(
+                """
+                <div style="
+                    font-size: clamp(14px, 1.8vw, 22px); 
+                    font-weight: bold; 
+                    background-color: #e8f4f8; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    color: #0c5460;
+                    margin-bottom: 15px;">
+                    📋 [안전부장] 시수 배정 추천
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
             top5_names = [f"{i+1}위 {a['item']}" for i, a in enumerate(top_5_anomalies)]
             
             top5_edu_areas = set()
